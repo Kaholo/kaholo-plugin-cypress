@@ -62,21 +62,20 @@ async function runCypressTests(params) {
     const stringData = String(dataChunk);
     stderrChunks.push(stringData);
   });
+  await promisify(dockerProcess.on.bind(dockerProcess))("exit");
 
-  return promisify(dockerProcess.on.bind(dockerProcess))("exit").then(() => {
-    if (reportsResultInJson) {
-      return stdoutChunks;
-    }
+  if (reportsResultInJson) {
+    return stdoutChunks;
+  }
 
-    const stdout = stdoutChunks.join("\n");
-    const stderr = stderrChunks.join("\n");
-    if (!stdout && stderr) {
-      throw new Error(stderr);
-    } else if (stderr) {
-      console.error(stderr);
-    }
-    return stdout;
-  });
+  const stdout = stdoutChunks.join("\n");
+  const stderr = stderrChunks.join("\n");
+  if (!stdout && stderr) {
+    throw new Error(stderr);
+  } else if (stderr) {
+    console.error(stderr);
+  }
+  return stdout;
 }
 
 function createCypressRunCommand({ reportsResultInJson }) {
