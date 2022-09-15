@@ -1,6 +1,7 @@
 const { spawn } = require("child_process");
 const { docker } = require("@kaholo/plugin-library");
 const { promisify } = require("util");
+const path = require("path");
 
 const {
   assertPathExistence,
@@ -21,13 +22,15 @@ async function runCypressTests(params) {
     reportsResultInJson,
   } = params;
 
-  const projectDirectoryExists = await assertPathExistence(workingDirectory);
+  const absoluteWorkingDirectory = path.resolve(workingDirectory);
+
+  const projectDirectoryExists = await assertPathExistence(absoluteWorkingDirectory);
   if (!projectDirectoryExists) {
-    throw new Error(`Path ${workingDirectory} does not exist on agent`);
+    throw new Error(`Path ${absoluteWorkingDirectory} does not exist on agent`);
   }
 
   const command = createCypressRunCommand({ reportsResultInJson });
-  const projectDirVolumeDefinition = docker.createVolumeDefinition(workingDirectory);
+  const projectDirVolumeDefinition = docker.createVolumeDefinition(absoluteWorkingDirectory);
   const environmentVariables = mapEnvironmentVariablesFromVolumeDefinitions([
     projectDirVolumeDefinition,
   ]);
