@@ -1,62 +1,39 @@
 {
-  "name": "kaholo-plugin-template",
-  "viewName": "Kaholo Template Plugin",
+  "name": "cypress",
+  "viewName": "Cypress",
   "type": "executer",
   "main": "app.js",
   "execProgram": "node",
-  "exposeRoute": false,
   "imgUrl": "logo.png",
-  "version": "2.0.0",
-  "description": "This plugin is only a generic template.",
+  "version": "0.1.0",
+  "description": "Kaholo Plugin for running Cypress tests in Docker containers",
   "category": [
-    "Basic Tools"
+    "Testing"
   ],
   "keywords": [
-    "template",
-    "plugin",
-    "kaholo",
-    "hello"
+    "testing",
+    "cypress",
+    "javascript"
    ],
-  "settings": [
-    {
-      "name": "helloName",
-      "viewName": "Default Hello Name",
-      "type": "string",
-      "description": "The person to whom to say hello by default",
-      "learnUrl": "https://docs.apify.com/api/v2#/introduction/authentication"
-    }
-  ],
   "methods": [
     {
-      "name": "hello",
-      "viewName": "Say hello",
+      "name": "runCypressTests",
+      "viewName": "Run Cypress Tests",
       "params": [
         {
-          "name": "helloName",
-          "viewName": "Hello Name",
+          "name": "workingDirectory",
+          "viewName": "Working Directory",
+          "description": "The Cypress test project folder containing \"cypress.config.js\"",
           "type": "string",
-          "required": false,
-          "placeholder": "World",
-          "default": "World",
-          "description": "The person to whom to say hello",
-          "learnUrl": "https://en.wikipedia.org/wiki/%22Hello,_World!%22_program"
+          "required": true,
+          "placeholder": "/home/user/cypress-project"
         },
         {
-          "name": "secret",
-          "viewName": "Secret",
-          "type": "vault",
-          "required": false,
-          "description": "A secret we might also say.",
-          "learnUrl": "https://en.wikipedia.org/wiki/%22Hello,_World!%22_program"
-        },
-        {
-          "name": "saySecret",
-          "viewName": "Say secret",
+          "name": "reportsResultInJson",
+          "viewName": "Report Result in JSON",
+          "description": "Return Test Results in JSON format, using Cypress JSON reporter",
           "type": "boolean",
-          "required": false,
-          "default": false,
-          "description": "If checked we'll also say the secret.",
-          "learnUrl": "https://en.wikipedia.org/wiki/%22Hello,_World!%22_program"
+          "default": true
         }
       ]
     }
