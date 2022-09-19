@@ -4,7 +4,7 @@ const { promisify } = require("util");
 const path = require("path");
 
 const {
-  assertPathExistence,
+  pathExists,
   isJSON,
   logToActivityLog,
 } = require("./helpers");
@@ -23,10 +23,13 @@ async function runCypressTests(params) {
   } = params;
 
   const absoluteWorkingDirectory = path.resolve(workingDirectory);
-
-  const projectDirectoryExists = await assertPathExistence(absoluteWorkingDirectory);
-  if (!projectDirectoryExists) {
+  if (!await pathExists(absoluteWorkingDirectory)) {
     throw new Error(`Path ${absoluteWorkingDirectory} does not exist on agent`);
+  }
+
+  const cypressConfigPath = path.resolve(absoluteWorkingDirectory, "cypress.config.js");
+  if (!await pathExists(cypressConfigPath)) {
+    throw new Error("Cypress config file (cypress.config.js) file is not present in the working directory");
   }
 
   const command = createCypressRunCommand({ reportsResultInJson });
