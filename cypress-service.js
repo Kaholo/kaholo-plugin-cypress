@@ -12,10 +12,6 @@ const {
   IMAGE_NAME,
 } = require("./consts.json");
 
-const NPM_INSTALL_LOG_FILEPATH = "/tmp/npm-install.log";
-const CYPRESS_INSTALL_LOG_FILEPATH = "/tmp/cypress-install.log";
-const CYPRESS_ERROR_LOG_FILEPATH = "/tmp/cypress-error.log";
-
 async function runCypressTests(params) {
   const {
     workingDirectory,
@@ -32,24 +28,24 @@ async function runCypressTests(params) {
     throw new Error("Cypress config file (cypress.config.js) file is not present in the working directory");
   }
 
-  const command = createCypressRunCommand({ reportsResultInJson });
+  const command = reportsResultInJson ? "-q -r json" : "run";
   const projectDirVolumeDefinition = docker.createVolumeDefinition(absoluteWorkingDirectory);
   const environmentVariables = mapEnvironmentVariablesFromVolumeDefinitions([
     projectDirVolumeDefinition,
   ]);
-
   const dockerCommand = docker.buildDockerCommand({
+    command,
     image: IMAGE_NAME,
-    command: sanitizeCommand(command),
     volumeDefinitionsArray: [projectDirVolumeDefinition],
     workingDirectory: `$${projectDirVolumeDefinition.mountPoint.name}`,
   });
 
-  const dockerProcess = spawn("bash", ["-c", dockerCommand], { env: environmentVariables });
+  const dockerProcess = spawn("bash", ["-c", dockerCommand], {
+    env: environmentVariables,
+  });
 
   const stdoutChunks = [];
   const stderrChunks = [];
-
   dockerProcess.stdout.on("data", (dataChunk) => {
     const stringData = String(dataChunk);
 
@@ -65,7 +61,12 @@ async function runCypressTests(params) {
     const stringData = String(dataChunk);
     stderrChunks.push(stringData);
   });
-  await promisify(dockerProcess.on.bind(dockerProcess))("exit");
+
+  try {
+    await promisify(dockerProcess.on.bind(dockerProcess))("exit");
+  } catch (error) {
+    logToActivityLog("Child process exit code:", error);
+  }
 
   if (reportsResultInJson) {
     return stdoutChunks;
@@ -81,27 +82,12 @@ async function runCypressTests(params) {
   return stdout;
 }
 
-function createCypressRunCommand({ reportsResultInJson }) {
-  const installationCommand = `npm install &>${NPM_INSTALL_LOG_FILEPATH} && npx cypress install &>${CYPRESS_INSTALL_LOG_FILEPATH}`;
-  const cypressRunCommand = (
-    reportsResultInJson
-      ? `npx cypress run -q -r json 2>${CYPRESS_ERROR_LOG_FILEPATH}`
-      : "npx cypress run"
-  );
-
-  return `${installationCommand} && ${cypressRunCommand}`;
-}
-
 function mapEnvironmentVariablesFromVolumeDefinitions(volumeDefinitions) {
   return volumeDefinitions.reduce((acc, cur) => ({
     ...acc,
     [cur.mountPoint.name]: cur.mountPoint.value,
     [cur.path.name]: cur.path.value,
   }), {});
-}
-
-function sanitizeCommand(command) {
-  return `bash -c ${JSON.stringify(command)}`;
 }
 
 module.exports = {
