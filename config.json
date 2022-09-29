@@ -34,6 +34,14 @@
           "description": "Return Test Results in JSON format, using Cypress JSON reporter",
           "type": "boolean",
           "default": true
+        },
+        {
+          "name": "additionalArguments",
+          "viewName": "Addition Command Line Arguments",
+          "description": "Any extra arguments you want to send (other than \"npx cypress run\")",
+          "type": "string",
+          "required": false,
+          "placeholder": "--browser chrome"
         }
       ]
     }
