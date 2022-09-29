@@ -29,11 +29,12 @@
           "placeholder": "/home/user/cypress-project"
         },
         {
-          "name": "reportsResultInJson",
-          "viewName": "Report Result in JSON",
-          "description": "Return Test Results in JSON format, using Cypress JSON reporter",
-          "type": "boolean",
-          "default": true
+          "name": "commandLine",
+          "viewName": "commandLine",
+          "description": "The Cypress test command (but not npx cypress run part)",
+          "type": "string",
+          "required": true,
+          "placeholder": "-q -r json"
         }
       ]
     }

@@ -15,8 +15,12 @@ const {
 async function runCypressTests(params) {
   const {
     workingDirectory,
-    reportsResultInJson,
+    commandLine,
   } = params;
+
+  if (commandLine.includes("json")) {
+    reportsResultInJson = true;
+  }
 
   const absoluteWorkingDirectory = path.resolve(workingDirectory);
   if (!await pathExists(absoluteWorkingDirectory)) {
@@ -28,7 +32,7 @@ async function runCypressTests(params) {
     throw new Error("Cypress config file (cypress.config.js) file is not present in the working directory");
   }
 
-  const command = reportsResultInJson ? "-q -r json" : "run";
+  const command = `run ${commandLine}`;
   const projectDirVolumeDefinition = docker.createVolumeDefinition(absoluteWorkingDirectory);
   const environmentVariables = mapEnvironmentVariablesFromVolumeDefinitions([
     projectDirVolumeDefinition,
