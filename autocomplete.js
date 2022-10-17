@@ -1,6 +1,6 @@
 const path = require("path");
-
-const { exec } = require("./helpers");
+const { promisify } = require("util");
+const glob = promisify(require("glob"));
 
 async function listSpecFiles(query, params) {
   const { workingDirectory } = params;
@@ -10,12 +10,11 @@ async function listSpecFiles(query, params) {
   }
 
   const absoluteWorkingDirectoryPath = path.resolve(workingDirectory);
-  const { stdout } = await exec("find ./ -regex '.*\\.cy\\.js'", {
+  const cypressFiles = await glob("./**/*.cy.js", {
     cwd: absoluteWorkingDirectoryPath,
   });
 
-  const foundFiles = stdout.trim().split("\n");
-  const autocompleteItems = foundFiles.map((value) => ({
+  const autocompleteItems = cypressFiles.map((value) => ({
     value,
     id: value,
   }));
