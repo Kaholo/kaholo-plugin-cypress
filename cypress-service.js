@@ -16,6 +16,10 @@ async function runCypressTests(params) {
   const {
     workingDirectory,
     reportsResultInJson,
+    browser,
+    specFile,
+    environmentVariables: customEnvironmentVariables,
+    customCommand,
   } = params;
 
   const absoluteWorkingDirectory = path.resolve(workingDirectory);
@@ -28,19 +32,43 @@ async function runCypressTests(params) {
     throw new Error("Cypress config file (cypress.config.js) file is not present in the working directory");
   }
 
-  const command = reportsResultInJson ? "-q -r json" : "run";
   const projectDirVolumeDefinition = docker.createVolumeDefinition(absoluteWorkingDirectory);
-  const environmentVariables = mapEnvironmentVariablesFromVolumeDefinitions([
-    projectDirVolumeDefinition,
-  ]);
+  const environmentVariables = {
+    ...mapEnvironmentVariablesFromVolumeDefinitions([
+      projectDirVolumeDefinition,
+    ]),
+    ...customEnvironmentVariables,
+  };
+
+  const command = buildCypressCommand({
+    reportsResultInJson,
+    browser,
+    specFile,
+    customCommand,
+    environmentVariables: customEnvironmentVariables,
+  });
   const dockerCommand = docker.buildDockerCommand({
     command,
     image: IMAGE_NAME,
     volumeDefinitionsArray: [projectDirVolumeDefinition],
     workingDirectory: `$${projectDirVolumeDefinition.mountPoint.name}`,
+    environmentVariables,
   });
 
-  const dockerProcess = spawn("bash", ["-c", dockerCommand], {
+  return runCypressCommand({
+    command: dockerCommand,
+    environmentVariables,
+  });
+}
+
+async function runCypressCommand(params) {
+  const {
+    command,
+    environmentVariables,
+  } = params;
+
+  const reportsResultInJson = /(-r|--report)[ =]["']?json["']?/g.test(command);
+  const dockerProcess = spawn("bash", ["-c", command], {
     env: environmentVariables,
   });
 
@@ -80,6 +108,37 @@ async function runCypressTests(params) {
     console.error(stderr);
   }
   return stdout;
+}
+
+function buildCypressCommand(params) {
+  const {
+    reportsResultInJson,
+    browser,
+    specFile,
+    customCommand,
+    environmentVariables = {},
+  } = params;
+
+  let constructedCommand = customCommand.replace(/^(cypress)? run/, "") || "";
+
+  if (reportsResultInJson && !/(-r|--report)[ =]['"]?json['"]?/g.test(constructedCommand)) {
+    constructedCommand += " -q -r json";
+  }
+  if (browser && !/(-b|--browser)/g.test(constructedCommand)) {
+    constructedCommand += ` -b ${browser}`;
+  }
+  if (specFile && !/(-s|--spec)/g.test(constructedCommand)) {
+    constructedCommand += ` -s ${JSON.stringify(specFile)}`;
+  }
+  if (Object.keys(environmentVariables).length > 0 && !/(-e|--env)/g.test(constructedCommand)) {
+    const envVarString = Object
+      .entries(environmentVariables)
+      .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
+      .join(",");
+    constructedCommand += ` -e ${envVarString}`;
+  }
+
+  return constructedCommand.trim();
 }
 
 function mapEnvironmentVariablesFromVolumeDefinitions(volumeDefinitions) {

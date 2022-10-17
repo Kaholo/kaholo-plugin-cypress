@@ -29,11 +29,54 @@
           "placeholder": "/home/user/cypress-project"
         },
         {
+          "name": "browser",
+          "viewName": "Browser",
+          "description": "Browser to run tests in",
+          "type": "options",
+          "options": [
+            {
+              "id": "electron",
+              "name": "Electron"
+            },
+            {
+              "id": "chrome",
+              "name": "Chrome"
+            },
+            {
+              "id": "firefox",
+              "name": "Firefox"
+            }
+          ]
+        },
+        {
+          "name": "specFile",
+          "viewName": "Spec File",
+          "description": "Cypress (.cy.js) test file to run",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listSpecFiles"
+        },
+        {
+          "name": "environmentVariables",
+          "viewName": "Environment Variables",
+          "descripiton": "Environment variables as key-value pairs, one per line",
+          "placeholder": "SERVER_NAME=http://example.com\nSERVER_PORT=80",
+          "type": "text",
+          "parserType": "keyValuePairs"
+        },
+        {
           "name": "reportsResultInJson",
           "viewName": "Report Result in JSON",
           "description": "Return Test Results in JSON format, using Cypress JSON reporter",
           "type": "boolean",
           "default": true
+        },
+        {
+          "name": "customCommand",
+          "viewName": "Custom Command",
+          "description": "Custom cypress run command to use, other parameters will be attached to this command",
+          "type": "string",
+          "placeholder": "cypress run -q --spec ./test-1.cy.js"
         }
       ]
     }
