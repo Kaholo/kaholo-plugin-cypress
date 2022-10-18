@@ -1,5 +1,9 @@
 const { stat } = require("fs/promises");
 const fs = require("fs");
+const { exec: execWithCallback } = require("child_process");
+const { promisify } = require("util");
+
+const exec = promisify(execWithCallback);
 
 async function pathExists(path) {
   try {
@@ -27,4 +31,5 @@ module.exports = {
   pathExists,
   isJSON,
   logToActivityLog,
+  exec,
 };
