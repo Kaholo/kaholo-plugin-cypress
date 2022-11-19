@@ -22,7 +22,7 @@ async function runCypressTests(params) {
     customCommand,
   } = params;
 
-  const absoluteWorkingDirectory = path.resolve(workingDirectory);
+  const absoluteWorkingDirectory = path.resolve(workingDirectory || "./");
   if (!await pathExists(absoluteWorkingDirectory)) {
     throw new Error(`Path ${absoluteWorkingDirectory} does not exist on agent`);
   }
@@ -119,7 +119,9 @@ function buildCypressCommand(params) {
     environmentVariables = {},
   } = params;
 
-  let constructedCommand = customCommand.replace(/^(cypress)? run/, "") || "";
+  const normalizedCommand = customCommand || "cypress run";
+
+  let constructedCommand = normalizedCommand.replace(/^(cypress)? run/, "") || "";
 
   if (reportsResultInJson && !/(-r|--report)[ =]['"]?json['"]?/g.test(constructedCommand)) {
     constructedCommand += " -q -r json";
