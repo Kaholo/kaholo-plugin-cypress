@@ -1,85 +1,54 @@
-# Kaholo SystemXYZ Plugin
-This plugin integrates ACME, inc. SystemXYZ with Kaholo, providing access to SystemXYZ's alerting functionality, for example sending a Ex message or setting an Zed alarm to notify someone of the results of a Kaholo Pipeline Action. For triggering Kaholo Pipelines from SystemXYZ, please see the Kaholo [SystemXYZ trigger](https://github.com/Kaholo/kaholo-trigger-systemxyz) instead.
+# Kaholo Cypress Plugin
+This plugin extends Kaholo to run [Cypress](https://www.cypress.io/) tests. Cypress is a next generation front end testing tool built for the modern web. Cypress tests anything that runs in a web browser. All of the architecture surrounding Cypress is built to handle modern JavaScript frameworks especially well. We have hundreds of projects using the latest React, Angular, Vue, Elm, etc. frameworks. Cypress also works equally well on older server rendered pages or applications.
 
 ## Prerequisites
-This plugin works with SystemXYZ version 4.0 and later, both SaaS platform and locally hosted versions.
+Cypress test projects are written in JavaScript, easily identified by the `cypress.config.js` file in the root of the project. Cypress tests are developed outside of Kaholo, and typically stored in a source code repository such as git. To run the tests in Kaholo, they must first be retrieved by the Kaholo agent, for example by cloning the repo using the [Kaholo Git plugin](https://github.com/Kaholo/kaholo-plugin-git/releases/).
 
-The following SystemXYZ APIs must be enabled for 3rd party access in the SystemXYZ Platform. The Kaholo plugin's service ID string is "kaholo-plugin-da2de162". SystemXYZ does not support 3rd party access to the Wy API so there are no Wy controller methods in the plugin.
+The Kaholo Cypress Plugin makes use of docker to run the tests, using image `cypress/included:10.7.0`. The first time the plugin is run on a Kaholo agent, this image is automatically downloaded, which may require a minute or so depending on the speed of the internet connection. Subsequent runs on the same agent then happen without delay.
 
->**SystemXYZ Ex API**
->
->**SystemXYZ Zed API**
+## <a name="envvars"></a>Environment Variables
+A common approach to generalizing tests for reuse is by using variables. These may be managed using standard Cypress variables stored in a file, or by means of operating system environment variables, e.g. using command `export CYPRESS_APPLICATION_URL=http://35.228.139.250:8080`. These cannot be set on the Kaholo Agent but must be passed into the docker image using the plugin's `Environment Variables` parameter, i.e. `CYPRESS_APPLICATION_URL=http://35.228.139.250:8080`. Cypress access only environment variables that begin with `CYPRESS_` or `cypress_`, but in the JavaScript code they are provided with the leading string stripped off. In the example variable `CYPRESS_APPLICATION_URL`, then, the code using that variable would look something like this:
 
-The SystemXYZ connectivity package must be installed on Kaholo agents. A `Test API` method is provided in the plugin. Check Parameter "Install API" in order to automatically install the SystemXYZ connectivity package. Alternatively, ask your Kaholo administrator to follow the [installation instructions](https://www.systemxyz.com.nz/install_connectivity_package/v4) on the SystemXYZ webite.
+    cy.visit(Cypress.env('APPLICATION_URL'))
 
-## Access and Authentication
-The plugin accesses SystemXYZ using the same URL as the web console, e.g. https://your-account.systemxyz.com.nz/. However, authentication with user/password is not permitted for automated processes.
-
-Instead the plugin uses SystemXYZ service tokens to authenticate. A SystemXYZ service token is a string that begins `XYZ-`, for example `XYZ-9ef6df656f9db28d4feaac0c0c6855bc`.  To get an appropriate service token, ask your SystemXYZ administrator for one that has permissions for the following actions:
-* ex-send
-* ex-send-email (only if email feature is used)
-* zed-readgroups
-* zed-triggergroups
-* xyz-vieworg
-* xyz-viewalarms
-
-You will also what to specify which Zed groups you will access, or alternately if the service token is granted `zed-any`, the plugin will be able to read and trigger all SystemXYZ groups.
-
-You may have more than one service token, these are vaulted in the Kaholo Vault. The service token is needed for Parameter "XYZ Service Token" as described below.
+The requirement that variables must have the leading string and that the string must be stripped off inside the test are unique to Cypress. Be careful not to let this confuse, and be certain to include the leading string when using the plugin parameter.
 
 ## Plugin Installation
 For download, installation, upgrade, downgrade and troubleshooting of plugins in general, see [INSTALL.md](./INSTALL.md).
 
 ## Plugin Settings
-Plugin settings act as default parameter values. If configured in plugin settings, the action parameters may be left unconfigured. Action parameters configured anyway over-ride the plugin-level settings for that Action.
-* Default XYZ Endpoint - The URL of your SystemXYZ installation, e.g. `https://your-account.systemxyz.com.nz/`
-* Default Zed Alarm Group - The Zed Alarm Group to use with Zed alarm methods, e.g. `zed-group-one`. Not used for Ex message-related methods.
-* Default Service Token (Vault) - The service token, stored in the Kaholo vault for authentication and access. e.g. `XYZ-9ef6df656f9db28d4feaac0c0c6855bc`
+Plugin settings act as default parameter values. The Cypress plugin has none. If the Working Directory is left unconfigured, it will evaluate to `/twiddlebug/workspace` (Kaholo v5.x) like most Kaholo plugins. It is recommended to clone cypress tests into this location to simplify the configuration of your pipelines. The Git plugin clones here already, into a subdirectory named after the repository, e.g. `/twiddlebug/workspace/myrepo`, unless specifically configured to do otherwise.
 
-## Pipelining Alarm Messaging
-A common use case for this plugin is to prototype Wy controller notifications by catching Zed Hooks, applying logic, and sending Ex messages as appropriate. To do this the following steps are needed:
-1. Install and configure the Kaholo [SystemXYZ trigger](https://github.com/Kaholo/kaholo-trigger-systemxyz) to be activated by a [SystemXYZ Zed Hook](https://www.systemxyz.com.nz/zed_hooks/v4).
-1. Use the trigger to start your prototype Kaholo pipeline.
-1. Use method Read Zed Alarms to collect the active alarm list and details.
-1. Apply your logic using the Kaholo Code page and/or Kaholo Conditional Code.
-1. Use method Send Ex Message if your logic determines it appropriate.
+## Method: Run Cypress Tests
+This method does the equivalent of `cypress run`. If your Cypress test project happens to be in the default working directory just selecting the method and executing the pipeline could succeed.
 
-## Method: Test API
-This method does a trivial test of the SystemXYZ connectivity package installed on the Kaholo agent, in order to validate that it is installed correctly and can network connect to the XYZ Endpoint. It returns only the version number of the SystemXYZ system and does not require a service token.
+### Parameter: Working Directory
+This parameter locates the test project you wish to run. For example if your tests are in a repository named `cypress-tests` in a subdirectory named `authentication`, and you've cloned the repo with the Git plugin using default configuration, your working directory will be `cypress-tests/authentication` or if you prefer `/twiddlebug/workspace/cypress-tests/authentication`. Working Directory must be a directory containing file `cypress.config.js`. The actual tests will be in deeper subdirectories. To select a specific test use parameter `Spec File` instead.
 
-### Parameters
-Required parameters have an asterisk (*) next to their names.
-* XYZ Endpoint * - as described above in [plugin settings](#plugin-settings)
-* Install API (checkbox) - if checked and the connectivity package is not found on the agent, the plugin will attempt to automatically install it.
+### Parameter: Browser
+This parameter allows for easy selection of a specific browser, equivalent to using `-b` or `--browser` at the command line. If either of these arguments appear in parameter `Custom Command` the selection here is ignored.
 
-## Method: Send Ex Message
-This method composes an Ex Message to send to SystemXYZ users and/or groups. Message bodies may be in JSON, MD, HTML, or plain text format. Malformed JSON, MD, or HTML results in a plain text message. Combinations of users and groups are permitted. Users listed who are also group members or member in more than one group get the message only once.
+### Parameter: Spec File
+This parameter is used to select a specific test, or Cypress "spec file" to run. This is the equivalent to using `-s` or `--spec` at the command line. If either of these arguments appear in parameter `Custom Command` the selection here is ignored. This parameter uses an autocomplete to help you quickly select any file matching `*.cy.js` in a subdirectory of Working Directory.
 
-> NOTE: Parameters left unconfigured get "Kaholo" by default, including message body and title. If parameter `Email` is selected, parameter `From` must be a valid user name or it will be rejected by SystemXYZ with `HTTP 404 - Page not found`. This also requires the service token have the special permission `ex-send-email`, otherwise you get the same HTTP 404 error.
+### Parameter: Environment Variables
+This parameter is used to pass environment variables for Cypress to use in code. See section [Environment Variables](#envvars) above for more details. Only environment variables beginning with `CYPRESS_` or `cypress_` are used by Cypress. Enter them in one-per-line CYPRESS_KEY=VALUE format. For example:
 
-### Parameters
-Required parameters have an asterisk (*) next to their names.
-* XYZ Endpoint * - as described above in [plugin settings](#plugin-settings)
-* Service Token * - as described above in [plugin settings](#plugin-settings)
-* Message Title - plain text one-line title of the message
-* Message Body - the body of the message in JSON, MD, HTML, or plain text format
-* Recipients * - the list of recipients, either usernames or group names, one per line
-* From - indicates the source of the message, either a valid user name or arbitrary text string
-* Email - if checked and SystemXYZ is linked to an email system, the message is sent out as an email instead of a SystemXYZ Ex message.
+    CYPRESS_APPURL=https://dev-01.markles.int:8080
+    CYPRESS_USERNAME=testuser01
+    CYPRESS_PASSWORD=testpass01
 
-## Method: Read Zed Alarms
-This method reads a Zed Alarm group from SystemXYZ whether or not any of the alarms are active. It is commonly used with the Kaholo [SystemXYZ trigger](https://github.com/Kaholo/kaholo-trigger-systemxyz) and [SystemXYZ Zed Hooks](https://www.systemxyz.com.nz/zed_hooks/v4). The trigger provides the timely response to an alarm, while this method provides the details of the alarm.
+These will be set as actual OS-level environment variables for Cypress to find. If you prefer to instead use [Cypress environment variables](https://docs.cypress.io/guides/guides/command-line#cypress-run-env-lt-env-gt), you may use `-e` or `--env` in the Custom Command parameter.
 
-If parameter `Zed Hook Code` is configured, the details on the triggering alarm are provided. If parameter `Alarm Group` is provided the details on all alarms (active or not) are provided. If both are configured, details on both are provided, even if the code refers to an alarm not in that group. This is useful in overcoming cross-group limitations in SystemXYZ alarms.
+### Parameter: Report Result in JSON
+This parameter is a convenient toggle to report in JSON for the Kaholo Final Result. JSON Final Results are much easier to access by actions downstream in your pipeline using the Kaholo code layer. For example:
 
-The Final Result in Kaholo is a JSON document of the same format as the equivalent [SystemXYZ Alarm Export](https://www.systemxyz.com.nz/alarm_export/v4).
+    function count() {
+        return `Test duration was ${kaholo.actions.cypress1.result[0].passes[0].duration} milliseconds.`
+    }
 
-### Parameters
-Required parameters have an asterisk (*) next to their names.
-* XYZ Endpoint * - as described above in [plugin settings](#plugin-settings)
-* Service Token * - as described above in [plugin settings](#plugin-settings)
-* Zed Hook Code - a code string from Zed Hooks, e.g. `zed-20220329aad`
-* Zed Alarm Group - a Zed alarm group, e.g. `zed-group-one`
+This is the equivalent of using `-q -r json` or `--quiet --reporter json` in the command. If either of these arguments appear in parameter `Custom Command` the selection here is ignored.
 
-## Method: Set Zed Alarm
-This method is not yet implemented. If you are interested in setting Zed alarms from Kaholo, please let us know! support@kaholo.io.
+### Parameter: Custom Command
+Here any command line arguments that can follow `cypress run` may be used. For a full list of options please see the [Cypress documentation](https://docs.cypress.io/guides/guides/command-line#cypress-run). Any arguments used here that conflict with selections made in the other parameters effectively override the other parameters. Those not in conflict have an additive effect, so a combination of custom arguments and selections in the other parameters is a valid configuration.
+
