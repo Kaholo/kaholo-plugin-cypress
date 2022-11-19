@@ -5,7 +5,7 @@
   "main": "app.js",
   "execProgram": "node",
   "imgUrl": "logo.png",
-  "version": "0.1.0-2022118",
+  "version": "0.1.0",
   "description": "Next generation front-end testing for the modern web",
   "category": [
     "Testing"
