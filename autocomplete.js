@@ -9,7 +9,8 @@ async function listSpecFiles(query, params) {
     throw new Error("Working Directory parameter must be provided");
   }
 
-  const absoluteWorkingDirectoryPath = path.resolve(workingDirectory);
+  const twiddlebugWorkingDir = process.cwd() === "/twiddlebug" ? "/twiddlebug/workspace" : process.cwd();
+  const absoluteWorkingDirectoryPath = path.resolve(twiddlebugWorkingDir, workingDirectory);
   const cypressFiles = await glob("./**/*.cy.js", {
     cwd: absoluteWorkingDirectoryPath,
   });
