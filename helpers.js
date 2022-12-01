@@ -23,8 +23,8 @@ function isJSON(value) {
   }
 }
 
-function logToActivityLog(message) {
-  console.error(message);
+function logToActivityLog(...messageChunks) {
+  console.error(messageChunks.join(" "));
 }
 
 module.exports = {
