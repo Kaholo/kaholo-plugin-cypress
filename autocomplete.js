@@ -13,6 +13,7 @@ async function listSpecFiles(query, params) {
   const absoluteWorkingDirectoryPath = path.resolve(twiddlebugWorkingDir, workingDirectory);
   const cypressFiles = await glob("./**/*.cy.js", {
     cwd: absoluteWorkingDirectoryPath,
+    nodir: true,
   });
 
   const autocompleteItems = cypressFiles.map((value) => ({

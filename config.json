@@ -78,7 +78,7 @@
         {
           "name": "customCommand",
           "viewName": "Custom Command",
-          "description": "Custom cypress run command - Use intead of or in combination with other parameters.",
+          "description": "Custom cypress run command - Use instead of or in combination with other parameters.",
           "type": "string",
           "placeholder": "cypress run -q --spec ./test-1.cy.js",
           "learnUrl": "https://docs.cypress.io/guides/guides/command-line#cypress-run"

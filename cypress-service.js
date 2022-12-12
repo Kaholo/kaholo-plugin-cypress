@@ -4,8 +4,8 @@ const { promisify } = require("util");
 const path = require("path");
 
 const {
-  pathExists,
   isJSON,
+  pathExists,
   logToActivityLog,
 } = require("./helpers");
 const {
@@ -93,7 +93,11 @@ async function runCypressCommand(params) {
   try {
     await promisify(dockerProcess.on.bind(dockerProcess))("exit");
   } catch (error) {
+    logToActivityLog(stderrChunks.join("\n"));
     logToActivityLog("Child process exit code:", error);
+    if (stdoutChunks.length === 0) {
+      throw error;
+    }
   }
 
   if (reportsResultInJson) {
@@ -115,24 +119,31 @@ function buildCypressCommand(params) {
     reportsResultInJson,
     browser,
     specFile,
-    customCommand,
+    customCommand = "",
     environmentVariables = {},
   } = params;
 
-  const normalizedCommand = customCommand || "cypress run";
+  const normalizedCommand = customCommand;
 
-  let constructedCommand = normalizedCommand.replace(/^(cypress)? run/, "") || "";
+  let constructedCommand = normalizedCommand.replace(/^(cypress)? run/, "");
 
-  if (reportsResultInJson && !/(-r|--report)[ =]['"]?json['"]?/g.test(constructedCommand)) {
+  const usingJsonReportArgument = /(-r|--report)[ =]['"]?json['"]?/g.test(constructedCommand);
+  if (reportsResultInJson && !usingJsonReportArgument) {
     constructedCommand += " -q -r json";
   }
-  if (browser && !/(-b|--browser)/g.test(constructedCommand)) {
+
+  const usingBrowserArgument = /(-b|--browser)/g.test(constructedCommand);
+  if (browser && !usingBrowserArgument) {
     constructedCommand += ` -b ${browser}`;
   }
-  if (specFile && !/(-s|--spec)/g.test(constructedCommand)) {
+
+  const usingSpecArgument = /(-s|--spec)/g.test(constructedCommand);
+  if (specFile && !usingSpecArgument) {
     constructedCommand += ` -s ${JSON.stringify(specFile)}`;
   }
-  if (Object.keys(environmentVariables).length > 0 && !/(-e|--env)/g.test(constructedCommand)) {
+
+  const usingEnvArgument = /(-e|--env)/g.test(constructedCommand);
+  if (Object.keys(environmentVariables).length > 0 && !usingEnvArgument) {
     const envVarString = Object
       .entries(environmentVariables)
       .map(([key, value]) => `${key}=${JSON.stringify(value)}`)
