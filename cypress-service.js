@@ -8,9 +8,6 @@ const {
   pathExists,
   logToActivityLog,
 } = require("./helpers");
-const {
-  IMAGE_NAME,
-} = require("./consts.json");
 
 async function runCypressTests(params) {
   const {
@@ -20,6 +17,7 @@ async function runCypressTests(params) {
     specFile,
     environmentVariables: customEnvironmentVariables,
     customCommand,
+    dockerImage,
   } = params;
 
   const absoluteWorkingDirectory = path.resolve(workingDirectory || "./");
@@ -49,7 +47,7 @@ async function runCypressTests(params) {
   });
   const dockerCommand = docker.buildDockerCommand({
     command,
-    image: IMAGE_NAME,
+    image: dockerImage,
     volumeDefinitionsArray: [projectDirVolumeDefinition],
     workingDirectory: `$${projectDirVolumeDefinition.mountPoint.name}`,
     environmentVariables,

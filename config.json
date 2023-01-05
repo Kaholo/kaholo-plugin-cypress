@@ -82,6 +82,13 @@
           "type": "string",
           "placeholder": "cypress run -q --spec ./test-1.cy.js",
           "learnUrl": "https://docs.cypress.io/guides/guides/command-line#cypress-run"
+        },
+        {
+          "name": "dockerImage",
+          "viewName": "Custom Docker Image",
+          "type": "string",
+          "description": "Optionally specify an alternative docker image:tag to use.",
+          "default": "cypress/included:10.7.0"
         }
       ]
     }
