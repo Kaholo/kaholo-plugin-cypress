@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/Kaholo/kaholo-plugin-cypress#readme",
   "dependencies": {
-    "@kaholo/plugin-library": "^2.0.0",
+    "@kaholo/plugin-library": "^2.1.2",
     "glob": "8.0.3"
   },
   "devDependencies": {
