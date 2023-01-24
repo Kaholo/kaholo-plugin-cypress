@@ -5,7 +5,7 @@
   "main": "app.js",
   "execProgram": "node",
   "imgUrl": "logo.png",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Next generation front-end testing for the modern web",
   "category": [
     "Testing"
@@ -88,7 +88,8 @@
           "viewName": "Custom Docker Image",
           "type": "string",
           "description": "Optionally specify an alternative docker image:tag to use.",
-          "default": "cypress/included:10.7.0"
+          "placeholder": "cypress/included:12.3.0", 
+          "default": "cypress/included:12.3.0"
         }
       ]
     }
