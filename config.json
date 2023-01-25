@@ -1,62 +1,95 @@
 {
-  "name": "kaholo-plugin-template",
-  "viewName": "Kaholo Template Plugin",
+  "name": "cypress",
+  "viewName": "Cypress",
   "type": "executer",
   "main": "app.js",
   "execProgram": "node",
-  "exposeRoute": false,
   "imgUrl": "logo.png",
-  "version": "2.0.0",
-  "description": "This plugin is only a generic template.",
+  "version": "1.0.0",
+  "description": "Next generation front-end testing for the modern web",
   "category": [
-    "Basic Tools"
+    "Testing"
   ],
   "keywords": [
-    "template",
-    "plugin",
-    "kaholo",
-    "hello"
+    "testing",
+    "cypress",
+    "javascript",
+    "e2e",
+    "spec",
+    "selenium"
    ],
-  "settings": [
-    {
-      "name": "helloName",
-      "viewName": "Default Hello Name",
-      "type": "string",
-      "description": "The person to whom to say hello by default",
-      "learnUrl": "https://docs.apify.com/api/v2#/introduction/authentication"
-    }
-  ],
   "methods": [
     {
-      "name": "hello",
-      "viewName": "Say hello",
+      "name": "runCypressTests",
+      "viewName": "Run Cypress Tests",
       "params": [
         {
-          "name": "helloName",
-          "viewName": "Hello Name",
+          "name": "workingDirectory",
+          "viewName": "Working Directory",
+          "description": "A Cypress test project folder containing \"cypress.config.js\", either absolute or relative path",
           "type": "string",
           "required": false,
-          "placeholder": "World",
-          "default": "World",
-          "description": "The person to whom to say hello",
-          "learnUrl": "https://en.wikipedia.org/wiki/%22Hello,_World!%22_program"
+          "placeholder": "cypress/test01"
         },
         {
-          "name": "secret",
-          "viewName": "Secret",
-          "type": "vault",
-          "required": false,
-          "description": "A secret we might also say.",
-          "learnUrl": "https://en.wikipedia.org/wiki/%22Hello,_World!%22_program"
+          "name": "browser",
+          "viewName": "Browser",
+          "description": "Browser to use for testing",
+          "type": "options",
+          "options": [
+            {
+              "id": "electron",
+              "name": "Electron"
+            },
+            {
+              "id": "chrome",
+              "name": "Chrome"
+            },
+            {
+              "id": "firefox",
+              "name": "Firefox"
+            }
+          ]
         },
         {
-          "name": "saySecret",
-          "viewName": "Say secret",
+          "name": "specFile",
+          "viewName": "Spec File",
+          "description": "Used to select a specific Cypress (*.cy.js) test file to run",
+          "type": "autocomplete",
+          "autocompleteType": "function",
+          "functionName": "listSpecFiles"
+        },
+        {
+          "name": "environmentVariables",
+          "viewName": "Environment Variables",
+          "description": "Environment variables as key=value pairs, one per line. Variables must begin with \"CYPRESS_\" to be used in Cypress tests.",
+          "placeholder": "CYPRESS_TESTURL=http://example.com\nCYPRESS_IPPORT=8080",
+          "type": "text",
+          "parserType": "keyValuePairs",
+          "learnUrl": "https://docs.cypress.io/guides/guides/environment-variables"
+        },
+        {
+          "name": "reportsResultInJson",
+          "viewName": "Report Result in JSON",
+          "description": "Return Final Result in JSON format, using Cypress JSON reporter.",
           "type": "boolean",
-          "required": false,
-          "default": false,
-          "description": "If checked we'll also say the secret.",
-          "learnUrl": "https://en.wikipedia.org/wiki/%22Hello,_World!%22_program"
+          "default": true
+        },
+        {
+          "name": "customCommand",
+          "viewName": "Custom Command",
+          "description": "Custom cypress run command - Use instead of or in combination with other parameters.",
+          "type": "string",
+          "placeholder": "cypress run -q --spec ./test-1.cy.js",
+          "learnUrl": "https://docs.cypress.io/guides/guides/command-line#cypress-run"
+        },
+        {
+          "name": "dockerImage",
+          "viewName": "Custom Docker Image",
+          "type": "string",
+          "description": "Optionally specify an alternative docker image:tag to use.",
+          "placeholder": "cypress/included:12.3.0", 
+          "default": "cypress/included:12.3.0"
         }
       ]
     }
